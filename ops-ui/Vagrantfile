@@ -1,0 +1,29 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "opsui" do |oi|
+    oi.vm.box = "puppetlabs/ubuntu-16.04-64-puppet"
+    oi.vm.hostname = "opsui"
+    oi.vm.box_url = "puppetlabs/ubuntu-16.04-64-puppet"
+    oi.vm.network :private_network, ip: "192.168.200.11"
+    oi.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 512]
+      v.customize ["modifyvm", :id, "--name",  "opsui"]
+      v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+      #v.customize ['modifyvm', :id, "--vram", "24"]
+      #v.customize ["modifyvm", :id, '--audio', 'dsound', '--audiocontroller', 'ac97']
+      v.gui = true
+      v.cpus = 2
+    end
+  end
+
+  config.vm.provision :shell, inline: "sudo sed -i 's/us.archive.ubuntu.com/mirrors.rit.edu/g' /etc/apt/sources.list"
+  config.vm.provision :shell, inline: "sudo sed -i 's/archive.ubuntu.com/mirrors.rit.edu/g' /etc/apt/sources.list"
+  config.vm.provision :shell, inline: "sudo apt-get update"
+
+  config.vm.provision "puppet" do |puppet|
+    puppet.options = "--verbose --debug"
+    puppet.environment_path = "environments"
+    puppet.environment = "test"
+  end
+
+end

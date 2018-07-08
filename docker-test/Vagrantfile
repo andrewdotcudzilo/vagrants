@@ -1,0 +1,24 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "docker-test" do |dt|
+    dt.vm.box = "ubuntu/xenial64"
+    dt.vm.hostname = "docker-test"
+    dt.vm.box_url = "ubuntu/xenial64"
+    dt.vm.network :private_network, ip: "192.168.201.10"
+    dt.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--name",  "docker-test"]
+    end
+  end
+
+  config.vm.provision :shell, inline: "sudo sed -i 's/us.archive.ubuntu.com/mirrors.rit.edu/g' /etc/apt/sources.list"
+  config.vm.provision :shell, inline: "sudo sed -i 's/archive.ubuntu.com/mirrors.rit.edu/g' /etc/apt/sources.list"
+  config.vm.provision :shell, inline: "sudo apt-get update"
+  config.vm.provision :shell, inline: "sudo apt-get dist-upgrade -y"
+  config.vm.provision :shell, inline: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
+  config.vm.provision :shell, inline: 'sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
+  config.vm.provision :shell, inline: "sudo apt-get update"
+  config.vm.provision :shell, inline: "sudo apt-get install -y docker-ce"
+  config.vm.provision :shell, inline: "sudo usermod -aG docker vagrant"
+
+end
